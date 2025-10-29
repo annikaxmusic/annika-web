@@ -1,0 +1,29 @@
+{
+  "bio": {
+    "title": "Hello players. Have we met?",
+    "paragraphs": [
+      "Now we have.",
+      "I'm an artist from Latvia, where forests hum and the air smells like rain. I write music from my heart and create for the joy of it — because for me, it's play, prayer, and a little bit of magic.",
+      "My songs live where fragility meets strength — small stories about growing, feeling, and staying real in a noisy world.",
+      "Sometimes I write in Latvian, mostly in English, sometimes in silence, sometimes while surfing — always searching for the spark hidden in the simplest moments.",
+      "Catch me on the waves"
+    ]
+  },
+  "concerts": [
+    { "event": "Rock music week", "date": "5.11.25", "url": "" },
+    { "event": "Vieluze - Big Ganger festival", "date": "19.11.25", "url": "" }
+  ],
+  "links": {
+    "tip": "https://joolpay.com/#/payment/9f839409-ab2e-40d9-8c9a-78c46f0c8451",
+    "press": "https://drive.google.com/drive/folders/1T5c-OCbSO_Th2HHMqRDUiUyLurXRKqey",
+    "spotify": "https://open.spotify.com/artist/78JekxTxz0JblH5W240wif",
+    "youtube": "https://www.youtube.com/embed/_nbEr0cBbBw",
+    "instagram": "https://www.instagram.com/annikaxmusic/",
+    "youtubeChannel": "https://www.youtube.com/@annikaxmusic",
+    "email": "mailto:ausmane.annika@gmail.com"
+  },
+  "buttonTexts": {
+    "tip": "click here you bastard",
+    "press": "my okeí pics & stuff"
+  }
+}
