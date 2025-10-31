@@ -165,13 +165,18 @@ const mergeContent = (base: SiteContent, maybeOverride: unknown): SiteContent =>
   return {
     ...base,
     ...override,
-    bio: {
-      ...base.bio,
-      ...override.bio,
-      paragraphs: Array.isArray(override.bio?.paragraphs)
-        ? override.bio.paragraphs
-        : base.bio.paragraphs,
-    },
+    bio: override.bio && typeof override.bio === "object"
+      ? {
+          ...base.bio,
+          ...override.bio,
+          paragraphs: Array.isArray(override.bio.paragraphs)
+            ? override.bio.paragraphs
+            : base.bio.paragraphs,
+          title: typeof override.bio.title === "string" 
+            ? override.bio.title 
+            : base.bio.title,
+        }
+      : base.bio,
     concerts: mergeConcerts(base.concerts, override.concerts),
     links: {
       ...base.links,
