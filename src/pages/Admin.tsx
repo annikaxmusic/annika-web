@@ -124,7 +124,7 @@ const Admin = () => {
     }));
   };
 
-  type UploadableAssetKey = "ogImage" | "favicon" | "appleTouchIcon" | "footerImage";
+  type UploadableAssetKey = "ogImage" | "favicon" | "appleTouchIcon" | "footerImage" | "tipImage";
 
   const handleAssetUpload = (field: UploadableAssetKey) => (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -331,6 +331,31 @@ const Admin = () => {
             <Input
               value={draftContent.buttonTexts.tip}
               onChange={(e) => handleButtonTextChange("tip", e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-3">
+            <Label>Tip Section Image (Photo or GIF)</Label>
+            <p className="text-xs text-muted-foreground">Upload an image/GIF to display under the Tip button</p>
+            {draftContent.assets.tipImage ? (
+              <div className="space-y-2">
+                <img
+                  src={draftContent.assets.tipImage}
+                  alt="Tip section preview"
+                  className="w-full max-w-md rounded border"
+                />
+                <Button variant="outline" size="sm" onClick={() => handleAssetReset("tipImage")}>
+                  Remove Image
+                </Button>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No image uploaded</p>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleAssetUpload("tipImage")}
+              className="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-md file:border file:border-input file:bg-secondary file:px-4 file:py-2 file:text-sm file:font-medium file:text-foreground hover:file:bg-secondary/80"
             />
           </div>
 
