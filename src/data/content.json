@@ -5,10 +5,10 @@
   },
   "concerts": [
     {
-      "event": "RIGA music week",
+      "event": "RIGA MUSIC WEEK",
       "date": "2025-11-05",
-      "time": "",
-      "url": ""
+      "time": "20:00",
+      "url": "https://rigamusicweek.lv/"
     }
   ],
   "links": {
