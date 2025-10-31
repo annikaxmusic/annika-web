@@ -168,27 +168,32 @@ const ConcertsSection = () => {
           const displayDate = formatDisplayDate(eventInfo, concert.date, concert.time);
           const countdownText = buildCountdown(eventInfo, now);
           const exactDateTime = formatExactDateTime(eventInfo);
+          
+          // Check if concert is in the past
+          const isPast = eventInfo?.date ? eventInfo.date.getTime() < now.getTime() : false;
 
           const rowContent = (
             <>
-              <span>{concert.event}</span>
-              <span>{displayDate}</span>
+              <span className={isPast ? "line-through opacity-60" : ""}>{concert.event}</span>
+              <span className={isPast ? "line-through opacity-60" : ""}>{displayDate}</span>
             </>
           );
 
-          const tooltipContent = countdownText ?? "Add a valid date & time to show a countdown.";
+          const tooltipContent = isPast 
+            ? "Event passed" 
+            : (countdownText ?? "Add a valid date & time to show a countdown.");
 
           const trigger = concert.url ? (
             <a
               href={concert.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex justify-between py-2 border-b border-foreground hover:opacity-70 transition-opacity"
+              className={`flex justify-between py-2 border-b border-foreground hover:opacity-70 transition-opacity ${isPast ? "opacity-60" : ""}`}
             >
               {rowContent}
             </a>
           ) : (
-            <div className="flex justify-between py-2 border-b border-foreground">
+            <div className={`flex justify-between py-2 border-b border-foreground ${isPast ? "opacity-60" : ""}`}>
               {rowContent}
             </div>
           );
