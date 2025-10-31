@@ -23,6 +23,30 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const CONTENT_FILE_PATH = "src/data/content.json";
 const GITHUB_API_BASE = "https://api.github.com";
 
+async function getFileFromGitHub(): Promise<any | null> {
+  if (!GITHUB_TOKEN) return null;
+
+  try {
+    const url = `${GITHUB_API_BASE}/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${CONTENT_FILE_PATH}`;
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `token ${GITHUB_TOKEN}`,
+        Accept: "application/vnd.github.v3+json",
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      // Decode base64 content (GitHub API returns content with newlines removed)
+      const contentString = Buffer.from(data.content.replace(/\n/g, ""), "base64").toString("utf-8");
+      return JSON.parse(contentString);
+    }
+  } catch (error) {
+    console.error("Failed to get file from GitHub:", error);
+  }
+  return null;
+}
+
 async function getFileSHA(): Promise<string | null> {
   if (!GITHUB_TOKEN) return null;
 
@@ -112,7 +136,15 @@ export default async function handler(
   }
 
   if (req.method === "GET") {
-    // Return the content from content.json
+    // Try to fetch latest content from GitHub first
+    if (GITHUB_TOKEN) {
+      const githubContent = await getFileFromGitHub();
+      if (githubContent) {
+        res.status(200).json(githubContent);
+        return;
+      }
+    }
+    // Fallback to bundled content.json if GitHub fetch fails
     res.status(200).json(contentData);
     return;
   }
