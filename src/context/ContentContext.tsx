@@ -169,10 +169,11 @@ const mergeContent = (base: SiteContent, maybeOverride: unknown): SiteContent =>
       ? {
           ...base.bio,
           ...override.bio,
-          paragraphs: Array.isArray(override.bio.paragraphs)
+          // Only use override paragraphs if they exist and have content
+          paragraphs: Array.isArray(override.bio.paragraphs) && override.bio.paragraphs.length > 0
             ? override.bio.paragraphs
             : base.bio.paragraphs,
-          title: typeof override.bio.title === "string" 
+          title: typeof override.bio.title === "string" && override.bio.title.trim()
             ? override.bio.title 
             : base.bio.title,
         }
@@ -217,7 +218,10 @@ export const ContentProvider = ({ children }: ContentProviderProps) => {
         if (text) {
           try {
             const data = JSON.parse(text);
+            console.log("API response data:", data);
+            console.log("Bio in API response:", data.bio);
             const normalized = mergeContent(cloneContent(), data);
+            console.log("Normalized bio:", normalized.bio);
             setContent(normalized);
             return;
           } catch (parseError) {
