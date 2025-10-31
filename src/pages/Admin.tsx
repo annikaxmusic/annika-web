@@ -10,8 +10,9 @@ import { useContent } from "@/context/ContentContext";
 const Admin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { content, setContent } = useContent();
+  const { content, saveContent } = useContent();
   const [draftContent, setDraftContent] = useState(content);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setDraftContent(content);
@@ -28,12 +29,24 @@ const Admin = () => {
     navigate("/admin/login");
   };
 
-  const handleSave = () => {
-    setContent(draftContent);
-    toast({
-      title: "Saved!",
-      description: "Changes applied across the site.",
-    });
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await saveContent(draftContent);
+      toast({
+        title: "Saved!",
+        description: "Changes saved to content.json and will be visible to everyone.",
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to save changes";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const updateBioParagraph = (index: number, value: string) => {
@@ -61,7 +74,7 @@ const Admin = () => {
     }));
   };
 
-  const updateConcert = (index: number, field: "event" | "date" | "url", value: string) => {
+  const updateConcert = (index: number, field: "event" | "date" | "time" | "url", value: string) => {
     setDraftContent((prev) => {
       const concerts = [...prev.concerts];
       concerts[index] = { ...concerts[index], [field]: value };
@@ -72,7 +85,7 @@ const Admin = () => {
   const addConcert = () => {
     setDraftContent((prev) => ({
       ...prev,
-      concerts: [...prev.concerts, { event: "", date: "", url: "" }],
+      concerts: [...prev.concerts, { event: "", date: "", time: "", url: "" }],
     }));
   };
 
@@ -144,8 +157,8 @@ const Admin = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-8 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold">Admin Dashboard</h1>
           <div className="flex gap-2">
-            <Button onClick={handleSave}>
-              Save Changes
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving ? "Saving..." : "Save Changes"}
             </Button>
             <Button onClick={handleLogout} variant="destructive">
               Logout
@@ -200,19 +213,28 @@ const Admin = () => {
           
           {draftContent.concerts.map((concert, index) => (
             <div key={index} className="space-y-2 border-b pb-4 mb-4">
-              <div className="flex gap-2 items-end">
-                <div className="flex-1 space-y-2">
+              <div className="flex flex-wrap gap-2 items-end">
+                <div className="flex-1 min-w-[200px] space-y-2">
                   <Label>Event</Label>
                   <Input
                     value={concert.event}
                     onChange={(e) => updateConcert(index, "event", e.target.value)}
                   />
                 </div>
-                <div className="w-32 space-y-2">
+                <div className="w-40 space-y-2">
                   <Label>Date</Label>
                   <Input
-                    value={concert.date}
+                    type="date"
+                    value={concert.date ?? ""}
                     onChange={(e) => updateConcert(index, "date", e.target.value)}
+                  />
+                </div>
+                <div className="w-32 space-y-2">
+                  <Label>Time</Label>
+                  <Input
+                    type="time"
+                    value={concert.time ?? ""}
+                    onChange={(e) => updateConcert(index, "time", e.target.value)}
                   />
                 </div>
                 <Button 
@@ -487,8 +509,14 @@ const Admin = () => {
 
         <div className="bg-muted p-4 rounded-lg">
           <p className="text-sm text-muted-foreground">
-            Click "Save Changes" to apply edits instantly across the site on this browser. All updates — including images and meta tags — live in your browser storage, so export or back them up before clearing cache.
+            Click "Save Changes" to save your edits directly to content.json in the repository. Changes will be visible to all visitors once saved and deployed.
           </p>
+          {import.meta.env.DEV && (
+            <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-2 font-medium">
+              ⚠️ Development Mode: API endpoints only work when deployed to Vercel or using <code className="bg-background px-1 rounded">vercel dev</code>. 
+              Use <code className="bg-background px-1 rounded">vercel dev</code> instead of <code className="bg-background px-1 rounded">npm run dev</code> to test saving locally.
+            </p>
+          )}
         </div>
       </main>
     </div>
