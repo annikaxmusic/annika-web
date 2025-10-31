@@ -25,5 +25,20 @@
   "buttonTexts": {
     "tip": "click here you bastard",
     "press": "my okeí pics & stuff"
+  },
+  "seo": {
+    "title": "ANNIKA - Latvian Alternative Indie-Rock Artist",
+    "description": "ANNIKA is a Latvian alternative indie-rock artist whose sound fuses poetic fragility, raw guitars and Baltic surf vibes. Discover new music, upcoming shows and press resources.",
+    "keywords": "ANNIKA, Annika Ausmane, Latvian music, alternative rock, indie rock, baltic artist, live shows",
+    "author": "ANNIKA",
+    "canonicalUrl": "https://annika-web.vercel.app/",
+    "twitterHandle": "@annikaxmusic"
+  },
+  "assets": {
+    "ogImage": "",
+    "favicon": "",
+    "appleTouchIcon": "",
+    "footerImage": "",
+    "footerImageAlt": "ANNIKA band standing in front of a blue smiley mural"
   }
 }

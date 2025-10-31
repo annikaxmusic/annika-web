@@ -1,16 +1,21 @@
-import { useState, useEffect } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import contentData from "@/data/content.json";
+import { useContent } from "@/context/ContentContext";
 
 const Admin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [content, setContent] = useState(contentData);
+  const { content, setContent } = useContent();
+  const [draftContent, setDraftContent] = useState(content);
+
+  useEffect(() => {
+    setDraftContent(content);
+  }, [content]);
 
   useEffect(() => {
     if (localStorage.getItem("adminAuth") !== "true") {
@@ -24,60 +29,113 @@ const Admin = () => {
   };
 
   const handleSave = () => {
-    const jsonString = JSON.stringify(content, null, 2);
-    
-    // Save to localStorage
-    localStorage.setItem("siteContent", jsonString);
-    
-    // Download JSON file
-    const blob = new Blob([jsonString], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "content.json";
-    a.click();
-    URL.revokeObjectURL(url);
-    
-    toast({ 
-      title: "Saved!", 
-      description: "Changes applied. Replace content.json in your repo with the downloaded file." 
+    setContent(draftContent);
+    toast({
+      title: "Saved!",
+      description: "Changes applied across the site.",
     });
   };
 
   const updateBioParagraph = (index: number, value: string) => {
-    const newParagraphs = [...content.bio.paragraphs];
-    newParagraphs[index] = value;
-    setContent({ ...content, bio: { ...content.bio, paragraphs: newParagraphs } });
+    setDraftContent((prev) => {
+      const paragraphs = [...prev.bio.paragraphs];
+      paragraphs[index] = value;
+      return { ...prev, bio: { ...prev.bio, paragraphs } };
+    });
   };
 
   const addBioParagraph = () => {
-    setContent({
-      ...content,
-      bio: { ...content.bio, paragraphs: [...content.bio.paragraphs, ""] }
-    });
+    setDraftContent((prev) => ({
+      ...prev,
+      bio: { ...prev.bio, paragraphs: [...prev.bio.paragraphs, ""] },
+    }));
   };
 
   const removeBioParagraph = (index: number) => {
-    const newParagraphs = content.bio.paragraphs.filter((_, i) => i !== index);
-    setContent({ ...content, bio: { ...content.bio, paragraphs: newParagraphs } });
+    setDraftContent((prev) => ({
+      ...prev,
+      bio: {
+        ...prev.bio,
+        paragraphs: prev.bio.paragraphs.filter((_, i) => i !== index),
+      },
+    }));
   };
 
   const updateConcert = (index: number, field: "event" | "date" | "url", value: string) => {
-    const newConcerts = [...content.concerts];
-    newConcerts[index] = { ...newConcerts[index], [field]: value };
-    setContent({ ...content, concerts: newConcerts });
-  };
-
-  const addConcert = () => {
-    setContent({
-      ...content,
-      concerts: [...content.concerts, { event: "", date: "", url: "" }]
+    setDraftContent((prev) => {
+      const concerts = [...prev.concerts];
+      concerts[index] = { ...concerts[index], [field]: value };
+      return { ...prev, concerts };
     });
   };
 
+  const addConcert = () => {
+    setDraftContent((prev) => ({
+      ...prev,
+      concerts: [...prev.concerts, { event: "", date: "", url: "" }],
+    }));
+  };
+
   const removeConcert = (index: number) => {
-    const newConcerts = content.concerts.filter((_, i) => i !== index);
-    setContent({ ...content, concerts: newConcerts });
+    setDraftContent((prev) => ({
+      ...prev,
+      concerts: prev.concerts.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleLinkChange = (field: keyof typeof draftContent.links, value: string) => {
+    setDraftContent((prev) => ({
+      ...prev,
+      links: { ...prev.links, [field]: value },
+    }));
+  };
+
+  const handleButtonTextChange = (field: keyof typeof draftContent.buttonTexts, value: string) => {
+    setDraftContent((prev) => ({
+      ...prev,
+      buttonTexts: { ...prev.buttonTexts, [field]: value },
+    }));
+  };
+
+  const handleSeoChange = (field: keyof typeof draftContent.seo, value: string) => {
+    setDraftContent((prev) => ({
+      ...prev,
+      seo: { ...prev.seo, [field]: value },
+    }));
+  };
+
+  const handleAssetFieldChange = (field: keyof typeof draftContent.assets, value: string) => {
+    setDraftContent((prev) => ({
+      ...prev,
+      assets: { ...prev.assets, [field]: value },
+    }));
+  };
+
+  type UploadableAssetKey = "ogImage" | "favicon" | "appleTouchIcon" | "footerImage";
+
+  const handleAssetUpload = (field: UploadableAssetKey) => (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === "string" ? reader.result : "";
+      setDraftContent((prev) => ({
+        ...prev,
+        assets: { ...prev.assets, [field]: result },
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAssetReset = (field: UploadableAssetKey) => {
+    setDraftContent((prev) => ({
+      ...prev,
+      assets: { ...prev.assets, [field]: "" },
+    }));
   };
 
   return (
@@ -104,14 +162,17 @@ const Admin = () => {
           <div className="space-y-2">
             <Label>Title</Label>
             <Input
-              value={content.bio.title}
-              onChange={(e) => setContent({ ...content, bio: { ...content.bio, title: e.target.value } })}
+              value={draftContent.bio.title}
+              onChange={(e) => setDraftContent((prev) => ({
+                ...prev,
+                bio: { ...prev.bio, title: e.target.value },
+              }))}
             />
           </div>
 
           <div className="space-y-4">
             <Label>Paragraphs</Label>
-            {content.bio.paragraphs.map((paragraph, index) => (
+            {draftContent.bio.paragraphs.map((paragraph, index) => (
               <div key={index} className="flex gap-2">
                 <Textarea
                   value={paragraph}
@@ -137,7 +198,7 @@ const Admin = () => {
         <section className="border rounded-lg p-6 space-y-4">
           <h2 className="text-xl font-bold">Concerts</h2>
           
-          {content.concerts.map((concert, index) => (
+          {draftContent.concerts.map((concert, index) => (
             <div key={index} className="space-y-2 border-b pb-4 mb-4">
               <div className="flex gap-2 items-end">
                 <div className="flex-1 space-y-2">
@@ -185,56 +246,56 @@ const Admin = () => {
           <div className="space-y-2">
             <Label>Tip Link</Label>
             <Input
-              value={content.links.tip}
-              onChange={(e) => setContent({ ...content, links: { ...content.links, tip: e.target.value } })}
+              value={draftContent.links.tip}
+              onChange={(e) => handleLinkChange("tip", e.target.value)}
             />
           </div>
 
           <div className="space-y-2">
             <Label>Press Link</Label>
             <Input
-              value={content.links.press}
-              onChange={(e) => setContent({ ...content, links: { ...content.links, press: e.target.value } })}
+              value={draftContent.links.press}
+              onChange={(e) => handleLinkChange("press", e.target.value)}
             />
           </div>
 
           <div className="space-y-2">
             <Label>Spotify Link</Label>
             <Input
-              value={content.links.spotify}
-              onChange={(e) => setContent({ ...content, links: { ...content.links, spotify: e.target.value } })}
+              value={draftContent.links.spotify}
+              onChange={(e) => handleLinkChange("spotify", e.target.value)}
             />
           </div>
 
           <div className="space-y-2">
             <Label>YouTube Embed URL</Label>
             <Input
-              value={content.links.youtube}
-              onChange={(e) => setContent({ ...content, links: { ...content.links, youtube: e.target.value } })}
+              value={draftContent.links.youtube}
+              onChange={(e) => handleLinkChange("youtube", e.target.value)}
             />
           </div>
 
           <div className="space-y-2">
             <Label>Instagram Link</Label>
             <Input
-              value={content.links.instagram}
-              onChange={(e) => setContent({ ...content, links: { ...content.links, instagram: e.target.value } })}
+              value={draftContent.links.instagram}
+              onChange={(e) => handleLinkChange("instagram", e.target.value)}
             />
           </div>
 
           <div className="space-y-2">
             <Label>YouTube Channel Link</Label>
             <Input
-              value={content.links.youtubeChannel}
-              onChange={(e) => setContent({ ...content, links: { ...content.links, youtubeChannel: e.target.value } })}
+              value={draftContent.links.youtubeChannel}
+              onChange={(e) => handleLinkChange("youtubeChannel", e.target.value)}
             />
           </div>
 
           <div className="space-y-2">
             <Label>Email</Label>
             <Input
-              value={content.links.email}
-              onChange={(e) => setContent({ ...content, links: { ...content.links, email: e.target.value } })}
+              value={draftContent.links.email}
+              onChange={(e) => handleLinkChange("email", e.target.value)}
             />
           </div>
         </section>
@@ -246,24 +307,187 @@ const Admin = () => {
           <div className="space-y-2">
             <Label>Tip Button Text</Label>
             <Input
-              value={content.buttonTexts.tip}
-              onChange={(e) => setContent({ ...content, buttonTexts: { ...content.buttonTexts, tip: e.target.value } })}
+              value={draftContent.buttonTexts.tip}
+              onChange={(e) => handleButtonTextChange("tip", e.target.value)}
             />
           </div>
 
           <div className="space-y-2">
             <Label>Press Button Text</Label>
             <Input
-              value={content.buttonTexts.press}
-              onChange={(e) => setContent({ ...content, buttonTexts: { ...content.buttonTexts, press: e.target.value } })}
+              value={draftContent.buttonTexts.press}
+              onChange={(e) => handleButtonTextChange("press", e.target.value)}
             />
+          </div>
+        </section>
+
+        {/* SEO */}
+        <section className="border rounded-lg p-6 space-y-4">
+          <h2 className="text-xl font-bold">SEO & Metadata</h2>
+
+          <div className="space-y-2">
+            <Label htmlFor="seo-title">Site Title</Label>
+            <Input
+              id="seo-title"
+              value={draftContent.seo.title}
+              onChange={(e) => handleSeoChange("title", e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="seo-description">Meta Description</Label>
+            <Textarea
+              id="seo-description"
+              value={draftContent.seo.description}
+              onChange={(e) => handleSeoChange("description", e.target.value)}
+              rows={3}
+            />
+            <p className="text-xs text-muted-foreground">Keep between 120-160 characters for best search preview.</p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="seo-keywords">Keywords (comma separated)</Label>
+            <Input
+              id="seo-keywords"
+              value={draftContent.seo.keywords}
+              onChange={(e) => handleSeoChange("keywords", e.target.value)}
+            />
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="seo-author">Author</Label>
+              <Input
+                id="seo-author"
+                value={draftContent.seo.author}
+                onChange={(e) => handleSeoChange("author", e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="seo-twitter">Twitter / X Handle</Label>
+              <Input
+                id="seo-twitter"
+                value={draftContent.seo.twitterHandle}
+                onChange={(e) => handleSeoChange("twitterHandle", e.target.value)}
+                placeholder="@annikaxmusic"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="seo-canonical">Canonical URL</Label>
+            <Input
+              id="seo-canonical"
+              value={draftContent.seo.canonicalUrl}
+              onChange={(e) => handleSeoChange("canonicalUrl", e.target.value)}
+              placeholder="https://annika.com/"
+            />
+            <p className="text-xs text-muted-foreground">Use your live domain so search engines know the primary URL.</p>
+          </div>
+        </section>
+
+        {/* Assets */}
+        <section className="border rounded-lg p-6 space-y-6">
+          <h2 className="text-xl font-bold">Images & Icons</h2>
+
+          <div className="space-y-3">
+            <Label>Open Graph / Social Share Image</Label>
+            {draftContent.assets.ogImage ? (
+              <img
+                src={draftContent.assets.ogImage}
+                alt="Open Graph preview"
+                className="w-full max-w-lg rounded border"
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">Using default og-image.png (1200×630 recommended).</p>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleAssetUpload("ogImage")}
+              className="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-md file:border file:border-input file:bg-secondary file:px-4 file:py-2 file:text-sm file:font-medium file:text-foreground hover:file:bg-secondary/80"
+            />
+            {draftContent.assets.ogImage && (
+              <Button variant="outline" size="sm" onClick={() => handleAssetReset("ogImage")}>Reset to default</Button>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            <Label>Favicon (32×32 PNG or ICO)</Label>
+            {draftContent.assets.favicon ? (
+              <img src={draftContent.assets.favicon} alt="Favicon preview" className="h-12 w-12 rounded border" />
+            ) : (
+              <p className="text-sm text-muted-foreground">Using default favicon.png.</p>
+            )}
+            <input
+              type="file"
+              accept="image/png,image/x-icon,image/svg+xml"
+              onChange={handleAssetUpload("favicon")}
+              className="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-md file:border file:border-input file:bg-secondary file:px-4 file:py-2 file:text-sm file:font-medium file:text-foreground hover:file:bg-secondary/80"
+            />
+            {draftContent.assets.favicon && (
+              <Button variant="outline" size="sm" onClick={() => handleAssetReset("favicon")}>Reset to default</Button>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            <Label>Apple Touch Icon (512×512 PNG)</Label>
+            {draftContent.assets.appleTouchIcon ? (
+              <img
+                src={draftContent.assets.appleTouchIcon}
+                alt="Apple touch icon preview"
+                className="h-20 w-20 rounded border"
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">Using default apple-touch-icon.png.</p>
+            )}
+            <input
+              type="file"
+              accept="image/png"
+              onChange={handleAssetUpload("appleTouchIcon")}
+              className="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-md file:border file:border-input file:bg-secondary file:px-4 file:py-2 file:text-sm file:font-medium file:text-foreground hover:file:bg-secondary/80"
+            />
+            {draftContent.assets.appleTouchIcon && (
+              <Button variant="outline" size="sm" onClick={() => handleAssetReset("appleTouchIcon")}>Reset to default</Button>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            <Label>Footer Image</Label>
+            {draftContent.assets.footerImage ? (
+              <img
+                src={draftContent.assets.footerImage}
+                alt="Footer preview"
+                className="w-full max-w-lg rounded border"
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">Using the default band photo from the site.</p>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleAssetUpload("footerImage")}
+              className="block w-full text-sm text-muted-foreground file:mr-4 file:rounded-md file:border file:border-input file:bg-secondary file:px-4 file:py-2 file:text-sm file:font-medium file:text-foreground hover:file:bg-secondary/80"
+            />
+            {draftContent.assets.footerImage && (
+              <Button variant="outline" size="sm" onClick={() => handleAssetReset("footerImage")}>Reset to default</Button>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="footer-image-alt">Footer Image Alt Text</Label>
+              <Input
+                id="footer-image-alt"
+                value={draftContent.assets.footerImageAlt}
+                onChange={(e) => handleAssetFieldChange("footerImageAlt", e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">Describe the image for accessibility and search engines.</p>
+            </div>
           </div>
         </section>
 
         <div className="bg-muted p-4 rounded-lg">
           <p className="text-sm text-muted-foreground">
-            <strong>How it works:</strong> Click "Save Changes" to apply edits immediately and download content.json. 
-            Replace the file in your repository with the downloaded version and redeploy for permanent changes.
+            Click "Save Changes" to apply edits instantly across the site on this browser. All updates — including images and meta tags — live in your browser storage, so export or back them up before clearing cache.
           </p>
         </div>
       </main>

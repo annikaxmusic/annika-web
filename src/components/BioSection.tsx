@@ -1,7 +1,7 @@
-import { getContent } from "@/lib/content";
+import { useContent } from "@/context/ContentContext";
 
 const BioSection = () => {
-  const content = getContent();
+  const { content } = useContent();
   
   return (
     <section className="w-full px-4 sm:px-8 py-8">
