@@ -6,21 +6,14 @@ import TipSection from "@/components/TipSection";
 import BioSection from "@/components/BioSection";
 import PressSection from "@/components/PressSection";
 import LinksSection from "@/components/LinksSection";
-import ScrollSparkles from "@/components/ScrollSparkles";
 import bandPhoto from "@/assets/band-photo.png";
-import { useContent } from "@/context/ContentContext";
 
 const Index = () => {
-  const { content } = useContent();
-  const footerImageSrc = content.assets.footerImage || bandPhoto;
-  const footerImageAlt = content.assets.footerImageAlt || "ANNIKA band";
-
   return (
-    <div className="relative min-h-screen bg-background">
-      <ScrollSparkles />
+    <div className="min-h-screen bg-background">
       <Header />
 
-      <main className="max-w-4xl mx-auto">
+      <main className="max-w-2xl mx-auto">
         <MusicSection />
         <ConcertsSection />
         <VideoSection />
@@ -31,7 +24,7 @@ const Index = () => {
       </main>
 
       <footer className="w-full mt-16">
-        <img src={footerImageSrc} alt={footerImageAlt} className="w-full h-auto object-cover" />
+        <img src={bandPhoto} alt="ANNIKA band" className="w-full h-auto object-cover" />
       </footer>
     </div>
   );
