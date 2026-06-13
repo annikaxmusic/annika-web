@@ -65,8 +65,50 @@
     },
     {
       "event": "KALNCIEMA KVARTĀLS",
-      "date": "2026-06-11",
+      "date": "2026-09-03",
       "time": "19:19",
+      "url": ""
+    },
+    {
+      "event": "Brūzis Manufaktūra",
+      "date": "2026-06-19",
+      "time": "19:00",
+      "url": ""
+    },
+    {
+      "event": "Private concert",
+      "date": "2026-06-20",
+      "time": "20:20",
+      "url": ""
+    },
+    {
+      "event": "Tallinas Ezītis",
+      "date": "2026-07-02",
+      "time": "20:00",
+      "url": ""
+    },
+    {
+      "event": "Private event",
+      "date": "2026-07-04",
+      "time": "",
+      "url": ""
+    },
+    {
+      "event": "K.K.Fon Stricka Villa",
+      "date": "2026-07-15",
+      "time": "",
+      "url": ""
+    },
+    {
+      "event": "Private event",
+      "date": "2026-08-01",
+      "time": "",
+      "url": ""
+    },
+    {
+      "event": "",
+      "date": "",
+      "time": "",
       "url": ""
     }
   ],
